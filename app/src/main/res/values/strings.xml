@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">骑行小智</string>
+    <string name="tab_chat">对话</string>
+    <string name="tab_music">音乐</string>
+    <string name="tab_settings">设置</string>
+
+    <string name="status_idle">点击下方麦克风开始对话</string>
+    <string name="status_listening">聆听中…风噪抑制已开启</string>
+    <string name="status_thinking">思考中…</string>
+    <string name="status_speaking">正在回复语音…</string>
+    <string name="status_no_llm">未配置大模型接口，仅本地指令可用（去设置里配置）</string>
+    <string name="cycling_on">骑行模式：开</string>
+    <string name="cycling_off">骑行模式：关</string>
+    <string name="cycling_label">骑行模式</string>
+
+    <string name="music_now_playing">正在播放</string>
+    <string name="music_none">未在播放</string>
+    <string name="music_playlist">播放列表</string>
+    <string name="music_add_url">添加网址</string>
+    <string name="music_add_local">从本地选择</string>
+    <string name="music_add_url_hint">粘贴音频/音乐直链（mp3/m4a/ogg 等）</string>
+    <string name="music_remove">移除</string>
+    <string name="volume_control">系统音量控制</string>
+
+    <string name="settings_llm">大模型接口（OpenAI 兼容）</string>
+    <string name="settings_base_url">接口地址 Base URL</string>
+    <string name="settings_api_key">API Key</string>
+    <string name="settings_model">模型名称</string>
+    <string name="settings_system_prompt">系统提示词（人设）</string>
+    <string name="settings_temp">温度（随机性）</string>
+    <string name="settings_voice">语音</string>
+    <string name="settings_tts_rate">语音播报语速</string>
+    <string name="settings_cycling">骑行模式</string>
+    <string name="settings_auto_volume">进入骑行模式自动音量（0 为不调整）</string>
+    <string name="settings_local_cmd">本地指令直执（播放/暂停/切歌/音量）</string>
+    <string name="settings_beep">指令执行播放提示音</string>
+    <string name="settings_duck">语音播报时音乐音量降到 %（%）</string>
+    <string name="settings_save">保存设置</string>
+    <string name="settings_saved">设置已保存</string>
+    <string name="update_title">检查更新</string>
+    <string name="update_checking">正在检查更新…</string>
+    <string name="update_current">当前版本 v%1$s</string>
+    <string name="update_none">已是最新版本</string>
+    <string name="update_found_title">发现新版本 v%1$s</string>
+    <string name="update_downloading">正在下载更新…</string>
+    <string name="update_downloaded">下载完成，正在安装…</string>
+    <string name="update_fail">更新失败：%1$s</string>
+    <string name="update_install_permission">请先允许“安装未知应用”权限</string>
+    <string name="update_download">下载</string>
+    <string name="update_later">以后再说</string>
+
+    <string name="default_system_prompt">你是“骑行小智”，一位温暖、自然的骑行语音陪伴助手。你说话简短口语化，善于在骑行场景帮助用户：闲聊、播放音乐、控制音量、查询天气、行程提醒。回答尽量控制在两三句话以内，适合骑行途中聆听。</string>
+
+    <string name="notification_cycling_title">骑行模式运行中</string>
+    <string name="notification_cycling_text">语音指令本地直执，长按可关闭</string>
+    <string name="notification_channel_cycling">骑行模式</string>
+    <string name="notification_channel_music">音乐播放</string>
+</resources>

@@ -28,8 +28,14 @@ jobs:
 
       - name: Ensure Android SDK packages
         run: |
-          yes | sdkmanager --licenses > /dev/null 2>&1 || true
-          sdkmanager "platform-tools" "platforms;android-35" "build-tools;34.0.0" > /dev/null 2>&1 || true
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          which sdkmanager || echo "sdkmanager not on PATH"
+          SDK="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          if [ ! -x "$SDK" ]; then echo "no sdkmanager at $SDK"; ls "$ANDROID_HOME/cmdline-tools" 2>/dev/null || true; fi
+          yes | "$SDK" --licenses > /dev/null 2>&1 || true
+          "$SDK" "platform-tools" "platforms;android-35" "build-tools;34.0.0" > /dev/null 2>&1 || true
+          echo "--- platforms ---"; ls "$ANDROID_HOME/platforms" 2>/dev/null || true
+          echo "--- build-tools ---"; ls "$ANDROID_HOME/build-tools" 2>/dev/null || true
 
       - name: Decode signing keystore
         run: |
@@ -38,10 +44,35 @@ jobs:
           ls -la keystore/
 
       - name: Build release APK
-        run: gradle assembleRelease --no-daemon
-        env:
-          ANDROID_HOME: $ANDROID_HOME
-          ANDROID_SDK_ROOT: $ANDROID_HOME
+        id: build
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          gradle assembleRelease --no-daemon --stacktrace 2>&1 | tee /tmp/gradle_build.log
+
+      - name: Commit build log to ci-log (diagnostic)
+        if: steps.build.outcome == 'failure'
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          mkdir -p logs
+          {
+            echo "=== env ==="
+            echo "ANDROID_HOME=$ANDROID_HOME"
+            echo "JAVA_HOME=$JAVA_HOME"
+            java -version 2>&1 || true
+            gradle --version 2>&1 | head -20 || true
+            echo "=== cmdline-tools ==="; ls "$ANDROID_HOME/cmdline-tools" 2>&1 || true
+            echo "=== platforms ==="; ls "$ANDROID_HOME/platforms" 2>&1 || true
+            echo "=== build-tools ==="; ls "$ANDROID_HOME/build-tools" 2>&1 || true
+            echo "=== keystore ==="; ls -la keystore 2>&1 || true
+            echo "=== gradle build log ==="
+            cat /tmp/gradle_build.log 2>&1 || true
+          } > logs/build_error.log
+          git add logs/build_error.log
+          git commit -m "diag: capture build error" || true
+          git push origin HEAD:ci-log --force || true
+          exit 1
 
       - name: Read version
         id: ver
@@ -50,6 +81,7 @@ jobs:
           echo "name=$(grep '^versionName' version.properties | cut -d= -f2)" >> "$GITHUB_OUTPUT"
 
       - name: Create Release & upload APK
+        if: steps.build.outcome == 'success'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.ver.outputs.name }}

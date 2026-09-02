@@ -6,6 +6,58 @@
     android:orientation="vertical"
     android:background="@color/bg">
 
+    <!-- 虚拟形象区域 -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="14dp"
+        android:paddingBottom="2dp"
+        android:clipChildren="false">
+
+        <View
+            android:id="@+id/avatarGlow"
+            android:layout_width="116dp"
+            android:layout_height="116dp"
+            android:layout_gravity="center"
+            android:background="@drawable/bg_avatar_glow"
+            android:alpha="0" />
+
+        <ImageView
+            android:id="@+id/avatarImg"
+            android:layout_width="104dp"
+            android:layout_height="104dp"
+            android:layout_gravity="center"
+            android:src="@drawable/avatar"
+            android:contentDescription="虚拟形象" />
+
+        <LinearLayout
+            android:id="@+id/avatarWave"
+            android:layout_width="wrap_content"
+            android:layout_height="18dp"
+            android:layout_gravity="center_horizontal|bottom"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:visibility="gone">
+
+            <View android:id="@+id/wave1" android:layout_width="3dp" android:layout_height="6dp"  android:layout_marginHorizontal="1.5dp" android:background="@drawable/bg_wave_bar" />
+            <View android:id="@+id/wave2" android:layout_width="3dp" android:layout_height="10dp" android:layout_marginHorizontal="1.5dp" android:background="@drawable/bg_wave_bar" />
+            <View android:id="@+id/wave3" android:layout_width="3dp" android:layout_height="14dp" android:layout_marginHorizontal="1.5dp" android:background="@drawable/bg_wave_bar" />
+            <View android:id="@+id/wave4" android:layout_width="3dp" android:layout_height="10dp" android:layout_marginHorizontal="1.5dp" android:background="@drawable/bg_wave_bar" />
+            <View android:id="@+id/wave5" android:layout_width="3dp" android:layout_height="6dp"  android:layout_marginHorizontal="1.5dp" android:background="@drawable/bg_wave_bar" />
+        </LinearLayout>
+    </FrameLayout>
+
+    <TextView
+        android:id="@+id/avatarName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="骑行小智"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:textColor="@color/text_primary"
+        android:paddingBottom="6dp" />
+
     <!-- 骑行模式开关行 -->
     <LinearLayout
         android:layout_width="match_parent"

@@ -53,6 +53,16 @@ echo [Version] %CODE% -^> %NEWCODE%   ^(%NAME% -^> %NEWNAME%^)
 echo [Building] first run downloads deps, please wait...
 echo.
 
+rem ---- decode binary assets from base64 if missing ----
+if not exist "app\src\main\res\drawable\avatar_closed.jpg" (
+  echo [Decode] avatar_closed.jpg from base64...
+  powershell -NoProfile -Command "[IO.File]::WriteAllBytes('app\src\main\res\drawable\avatar_closed.jpg', [Convert]::FromBase64String([IO.File]::ReadAllText('binary-assets\avatar_closed.jpg.b64')))"
+)
+if not exist "app\src\main\res\drawable\avatar_open.jpg" (
+  echo [Decode] avatar_open.jpg from base64...
+  powershell -NoProfile -Command "[IO.File]::WriteAllBytes('app\src\main\res\drawable\avatar_open.jpg', [Convert]::FromBase64String([IO.File]::ReadAllText('binary-assets\avatar_open.jpg.b64')))"
+)
+
 call "%GRADLE_HOME%\bin\gradle.bat" assembleRelease --no-daemon
 if errorlevel 1 (
   echo.

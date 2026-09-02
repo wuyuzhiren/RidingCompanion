@@ -43,6 +43,12 @@ jobs:
           base64 -d keystore/riding.jks.b64 > keystore/riding.jks
           ls -la keystore/
 
+      - name: Decode avatar images
+        run: |
+          base64 -d binary-assets/avatar_closed.jpg.b64 > app/src/main/res/drawable/avatar_closed.jpg
+          base64 -d binary-assets/avatar_open.jpg.b64 > app/src/main/res/drawable/avatar_open.jpg
+          ls -la app/src/main/res/drawable/avatar_*.jpg
+
       - name: Build release APK
         id: build
         continue-on-error: true

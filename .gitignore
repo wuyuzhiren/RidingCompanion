@@ -12,8 +12,12 @@ app/src/main/res/mipmap-xhdpi/
 app/src/main/res/mipmap-xxhdpi/
 app/src/main/res/mipmap-xxxhdpi/
 _res_bak/
-app/src/main/res/drawable/avatar_closed.jpg
-app/src/main/res/drawable/avatar_open.jpg
+app/src/main/res/drawable/avatar1_closed.jpg
+app/src/main/res/drawable/avatar1_open.jpg
+app/src/main/res/drawable/avatar2_closed.jpg
+app/src/main/res/drawable/avatar2_open.jpg
+app/src/main/res/drawable/avatar3_closed.jpg
+app/src/main/res/drawable/avatar3_open.jpg
 .idea/
 *.iml
 .vscode/

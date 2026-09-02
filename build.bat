@@ -1,8 +1,8 @@
 @echo off
 setlocal enabledelayedexpansion
 cd /d "%~dp0"
-set "JAVA_HOME=C:\android-build\jdk\jdk-17.0.20.1+1"
-set "ANDROID_HOME=C:\android-build\sdk"
+set "JAVA_HOME=C:\android-build\jdk-17.0.13+11"
+set "ANDROID_HOME=C:\Android\Sdk"
 set "GRADLE_HOME=C:\android-build\gradle-8.9"
 if not exist "%JAVA_HOME%\bin\java.exe" ( echo [ERROR] JDK not found & pause & exit /b 1 )
 if not exist "%GRADLE_HOME%\bin\gradle.bat" ( echo [ERROR] Gradle not found & pause & exit /b 1 )
@@ -17,13 +17,11 @@ for /f "tokens=1,2,3 delims=." %%x in ("%NAME%") do ( set /a PATCH=%%z+1 & set "
 set "NEWNAME=%NEWMAJOR%.%NEWMINOR%.%PATCH%"
 ( echo versionCode=%NEWCODE% & echo versionName=%NEWNAME% ) > "%VER_FILE%"
 echo. & echo [Version] %CODE% -^> %NEWCODE%   ^(%NAME% -^> %NEWNAME%^) & echo.
-if not exist "app\src\main\res\drawable\avatar_closed.jpg" (
-  echo [Decode] avatar_closed.jpg...
-  powershell -NoProfile -Command "[IO.File]::WriteAllBytes('app\src\main\res\drawable\avatar_closed.jpg', [Convert]::FromBase64String([IO.File]::ReadAllText('binary-assets\avatar_closed.jpg.b64')))"
-)
-if not exist "app\src\main\res\drawable\avatar_open.jpg" (
-  echo [Decode] avatar_open.jpg...
-  powershell -NoProfile -Command "[IO.File]::WriteAllBytes('app\src\main\res\drawable\avatar_open.jpg', [Convert]::FromBase64String([IO.File]::ReadAllText('binary-assets\avatar_open.jpg.b64')))"
+for %%n in (avatar1_closed avatar1_open avatar2_closed avatar2_open avatar3_closed avatar3_open) do (
+  if not exist "app\src\main\res\drawable\%%n.jpg" (
+    echo [Decode] %%n.jpg...
+    powershell -NoProfile -Command "[IO.File]::WriteAllBytes('app\src\main\res\drawable\%%n.jpg', [Convert]::FromBase64String([IO.File]::ReadAllText('binary-assets\%%n.jpg.b64')))"
+  )
 )
 call "%GRADLE_HOME%\bin\gradle.bat" assembleRelease --no-daemon
 if errorlevel 1 ( echo [BUILD FAILED] & pause & exit /b 1 )

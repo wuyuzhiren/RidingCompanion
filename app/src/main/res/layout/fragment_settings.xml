@@ -191,6 +191,47 @@
             android:max="100"
             android:progress="10" />
 
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/settings_character"
+            android:textColor="@color/primary_dark"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:paddingTop="16dp" />
+
+        <RadioGroup
+            android:id="@+id/rgCharacter"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingTop="8dp">
+
+            <RadioButton
+                android:id="@+id/rbChar1"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/char1_name"
+                android:textSize="12sp" />
+
+            <RadioButton
+                android:id="@+id/rbChar2"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/char2_name"
+                android:textSize="12sp" />
+
+            <RadioButton
+                android:id="@+id/rbChar3"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/char3_name"
+                android:textSize="12sp" />
+        </RadioGroup>
+
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnSave"
             android:layout_width="match_parent"

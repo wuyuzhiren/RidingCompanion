@@ -12,10 +12,10 @@
             android:layout_height="wrap_content" android:layout_gravity="center">
             <ImageView android:id="@+id/avatarClosed" android:layout_width="match_parent"
                 android:layout_height="wrap_content" android:adjustViewBounds="true"
-                android:src="@drawable/avatar_closed" android:contentDescription="虚拟形象闭嘴" />
+                android:contentDescription="虚拟形象闭嘴" />
             <ImageView android:id="@+id/avatarOpen" android:layout_width="match_parent"
                 android:layout_height="wrap_content" android:adjustViewBounds="true"
-                android:alpha="0" android:src="@drawable/avatar_open" android:contentDescription="虚拟形象张嘴" />
+                android:alpha="0" android:contentDescription="虚拟形象张嘴" />
         </FrameLayout>
     </FrameLayout>
 

@@ -36,6 +36,10 @@
     <string name="settings_local_cmd">本地指令直执（播放/暂停/切歌/音量）</string>
     <string name="settings_beep">指令执行播放提示音</string>
     <string name="settings_duck">语音播报时音乐音量降到 %（%）</string>
+    <string name="settings_character">虚拟形象</string>
+    <string name="char1_name">小樱 · 14岁JK少女</string>
+    <string name="char2_name">小晴 · 20岁元气青年</string>
+    <string name="char3_name">林姐 · 35岁知性御姐</string>
     <string name="settings_save">保存设置</string>
     <string name="settings_saved">设置已保存</string>
     <string name="update_title">检查更新</string>

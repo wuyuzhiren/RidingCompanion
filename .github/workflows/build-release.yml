@@ -1,101 +1,59 @@
 name: build-release
-
-# 每次 push 到 main 自动构建 APK 并发布到 GitHub Releases（供 App 内置更新拉取）
 on:
   push:
     branches: [ main ]
   workflow_dispatch:
-
 permissions:
   contents: write
-
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
-
       - name: Setup Gradle 8.9
         uses: gradle/actions/setup-gradle@v3
         with:
           gradle-version: '8.9'
-
-      - name: Ensure Android SDK packages
+      - name: Ensure Android SDK
         run: |
-          echo "ANDROID_HOME=$ANDROID_HOME"
-          which sdkmanager || echo "sdkmanager not on PATH"
           SDK="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
-          if [ ! -x "$SDK" ]; then echo "no sdkmanager at $SDK"; ls "$ANDROID_HOME/cmdline-tools" 2>/dev/null || true; fi
           yes | "$SDK" --licenses > /dev/null 2>&1 || true
           "$SDK" "platform-tools" "platforms;android-35" "build-tools;34.0.0" > /dev/null 2>&1 || true
-          echo "--- platforms ---"; ls "$ANDROID_HOME/platforms" 2>/dev/null || true
-          echo "--- build-tools ---"; ls "$ANDROID_HOME/build-tools" 2>/dev/null || true
-
-      - name: Decode signing keystore
+      - name: Decode keystore
         run: |
           mkdir -p keystore
           base64 -d keystore/riding.jks.b64 > keystore/riding.jks
-          ls -la keystore/
-
-      - name: Decode avatar images
+      - name: Decode avatars
         run: |
           base64 -d binary-assets/avatar_closed.jpg.b64 > app/src/main/res/drawable/avatar_closed.jpg
           base64 -d binary-assets/avatar_open.jpg.b64 > app/src/main/res/drawable/avatar_open.jpg
-          ls -la app/src/main/res/drawable/avatar_*.jpg
-
-      - name: Build release APK
+      - name: Build APK
         id: build
         continue-on-error: true
-        run: |
-          set -o pipefail
-          gradle assembleRelease --no-daemon --stacktrace 2>&1 | tee /tmp/gradle_build.log
-
-      - name: Commit build log to ci-log (diagnostic)
+        run: gradle assembleRelease --no-daemon --stacktrace 2>&1 | tee /tmp/gradle_build.log
+      - name: Upload log on failure
         if: steps.build.outcome == 'failure'
         run: |
-          git config user.name "github-actions"
-          git config user.email "actions@github.com"
-          mkdir -p logs
-          {
-            echo "=== env ==="
-            echo "ANDROID_HOME=$ANDROID_HOME"
-            echo "JAVA_HOME=$JAVA_HOME"
-            java -version 2>&1 || true
-            gradle --version 2>&1 | head -20 || true
-            echo "=== cmdline-tools ==="; ls "$ANDROID_HOME/cmdline-tools" 2>&1 || true
-            echo "=== platforms ==="; ls "$ANDROID_HOME/platforms" 2>&1 || true
-            echo "=== build-tools ==="; ls "$ANDROID_HOME/build-tools" 2>&1 || true
-            echo "=== keystore ==="; ls -la keystore 2>&1 || true
-            echo "=== gradle build log ==="
-            cat /tmp/gradle_build.log 2>&1 || true
-          } > logs/build_error.log
-          git add logs/build_error.log
-          git commit -m "diag: capture build error" || true
-          git push origin HEAD:ci-log --force || true
-          exit 1
-
+          git config user.name "github-actions"; git config user.email "actions@github.com"
+          mkdir -p logs; cp /tmp/gradle_build.log logs/build_error.log
+          git add logs/build_error.log; git commit -m "diag: build error" || true
+          git push origin HEAD:ci-log --force || true; exit 1
       - name: Read version
         id: ver
         run: |
           echo "code=$(grep '^versionCode' version.properties | cut -d= -f2)" >> "$GITHUB_OUTPUT"
           echo "name=$(grep '^versionName' version.properties | cut -d= -f2)" >> "$GITHUB_OUTPUT"
-
-      - name: Create Release & upload APK
+      - name: Release
         if: steps.build.outcome == 'success'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.ver.outputs.name }}
           name: 骑行小智 v${{ steps.ver.outputs.name }}
-          body: |
-            自动构建版本 v${{ steps.ver.outputs.name }}（build ${{ steps.ver.outputs.code }}）
-
-            安装包：app-release.apk（同签名，可直接覆盖安装）
+          body: "自动构建 v${{ steps.ver.outputs.name }} build ${{ steps.ver.outputs.code }}"
           files: app/build/outputs/apk/release/app-release.apk
           fail_on_unmatched_globs: true
-          generate_release_notes: false

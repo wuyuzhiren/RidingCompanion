@@ -1,123 +1,50 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="@color/bg">
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:background="@color/bg">
 
-    <!-- 虚拟形象区域 -->
-    <FrameLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:paddingTop="8dp"
-        android:paddingBottom="2dp"
-        android:clipChildren="false">
-
-        <View
-            android:id="@+id/avatarGlow"
-            android:layout_width="200dp"
-            android:layout_height="200dp"
-            android:layout_gravity="center"
-            android:background="@drawable/bg_avatar_glow"
-            android:alpha="0" />
-
-        <FrameLayout
-            android:id="@+id/avatarContainer"
-            android:layout_width="200dp"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center">
-
-            <ImageView
-                android:id="@+id/avatarClosed"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:adjustViewBounds="true"
-                android:src="@drawable/avatar_closed"
-                android:contentDescription="虚拟形象闭嘴" />
-
-            <ImageView
-                android:id="@+id/avatarOpen"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:adjustViewBounds="true"
-                android:alpha="0"
-                android:src="@drawable/avatar_open"
-                android:contentDescription="虚拟形象张嘴" />
+    <FrameLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:paddingTop="8dp" android:paddingBottom="2dp" android:clipChildren="false">
+        <View android:id="@+id/avatarGlow" android:layout_width="200dp" android:layout_height="200dp"
+            android:layout_gravity="center" android:background="@drawable/bg_avatar_glow" android:alpha="0" />
+        <FrameLayout android:id="@+id/avatarContainer" android:layout_width="200dp"
+            android:layout_height="wrap_content" android:layout_gravity="center">
+            <ImageView android:id="@+id/avatarClosed" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:adjustViewBounds="true"
+                android:src="@drawable/avatar_closed" android:contentDescription="虚拟形象闭嘴" />
+            <ImageView android:id="@+id/avatarOpen" android:layout_width="match_parent"
+                android:layout_height="wrap_content" android:adjustViewBounds="true"
+                android:alpha="0" android:src="@drawable/avatar_open" android:contentDescription="虚拟形象张嘴" />
         </FrameLayout>
     </FrameLayout>
 
-    <TextView
-        android:id="@+id/avatarName"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:text="骑行小智"
-        android:textSize="14sp"
-        android:textStyle="bold"
-        android:textColor="@color/text_primary"
-        android:paddingBottom="6dp" />
+    <TextView android:id="@+id/avatarName" android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:gravity="center" android:text="骑行小智" android:textSize="14sp" android:textStyle="bold"
+        android:textColor="@color/text_primary" android:paddingBottom="6dp" />
 
-    <!-- 骑行模式开关行 -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:paddingHorizontal="20dp"
-        android:paddingVertical="8dp"
-        android:background="#E3F2FD">
-
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/cycling_label"
-            android:textSize="15sp"
-            android:textColor="@color/text_primary"
-            android:textStyle="bold" />
-
-        <Switch
-            android:id="@+id/cyclingSwitch"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:thumbTint="@color/cycling_accent"
-            android:trackTint="@color/cycling_accent" />
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="horizontal" android:gravity="center_vertical"
+        android:paddingHorizontal="20dp" android:paddingVertical="8dp" android:background="#E3F2FD">
+        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+            android:text="@string/cycling_label" android:textSize="15sp" android:textColor="@color/text_primary" android:textStyle="bold" />
+        <Switch android:id="@+id/cyclingSwitch" android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:thumbTint="@color/cycling_accent" android:trackTint="@color/cycling_accent" />
     </LinearLayout>
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/chatList"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:clipToPadding="false"
-        android:paddingHorizontal="12dp"
-        android:paddingVertical="8dp" />
+    <androidx.recyclerview.widget.RecyclerView android:id="@+id/chatList"
+        android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"
+        android:clipToPadding="false" android:paddingHorizontal="12dp" android:paddingVertical="8dp" />
 
-    <TextView
-        android:id="@+id/statusText"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:paddingVertical="6dp"
-        android:text="@string/status_idle"
-        android:textColor="@color/text_secondary"
-        android:textSize="13sp" />
+    <TextView android:id="@+id/statusText" android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:gravity="center" android:paddingVertical="6dp" android:text="@string/status_idle"
+        android:textColor="@color/text_secondary" android:textSize="13sp" />
 
-    <FrameLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:paddingBottom="16dp"
-        android:paddingTop="4dp">
-
-        <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:id="@+id/micButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:contentDescription="麦克风"
-            app:srcCompat="@drawable/ic_mic"
-            app:backgroundTint="@color/primary"
-            app:tint="@color/white" />
+    <FrameLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:paddingBottom="16dp" android:paddingTop="4dp">
+        <com.google.android.material.floatingactionbutton.FloatingActionButton android:id="@+id/micButton"
+            android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center_horizontal"
+            android:contentDescription="麦克风" app:srcCompat="@drawable/ic_mic"
+            app:backgroundTint="@color/primary" app:tint="@color/white" />
     </FrameLayout>
 </LinearLayout>

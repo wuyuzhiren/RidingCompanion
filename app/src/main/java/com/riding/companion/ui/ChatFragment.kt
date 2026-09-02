@@ -31,7 +31,6 @@ class ChatFragment : Fragment() {
     private val adapter = ChatAdapter()
     private val history = mutableListOf<ChatEngine.Msg>()
 
-    // 虚拟形象动画
     private var breathingAnim: android.animation.AnimatorSet? = null
     private var glowAnim: android.animation.ObjectAnimator? = null
     private var mouthAnim: android.animation.ValueAnimator? = null
@@ -60,9 +59,7 @@ class ChatFragment : Fragment() {
         if (adapter.items.isEmpty()) {
             adapter.add(ChatItem(false, "你好！我是骑行小智。点下方麦克风跟我说话；开启骑行模式后，音乐和音量指令会在本地直执，风噪下更稳定。"))
         }
-
         startBreathing()
-
         binding.cyclingSwitch.isChecked = AppConfig.cyclingMode
         binding.cyclingSwitch.setOnCheckedChangeListener { _, checked ->
             AppConfig.cyclingMode = checked
@@ -74,7 +71,6 @@ class ChatFragment : Fragment() {
                 setStatus(getString(R.string.status_idle))
             }
         }
-
         binding.micButton.setOnClickListener {
             if (VoiceController.isListening()) {
                 VoiceController.stopListening()
@@ -87,7 +83,6 @@ class ChatFragment : Fragment() {
                 }
             }
         }
-
         VoiceController.onResult = { text -> onVoiceResult(text) }
         VoiceController.onError = { err -> setStatus(err) }
         VoiceController.onListeningChange = { listening ->
@@ -95,40 +90,26 @@ class ChatFragment : Fragment() {
                 setStatus(getString(R.string.status_listening))
                 setListening(true)
             } else {
-                setStatus(
-                    if (AppConfig.cyclingMode) "已进入骑行模式，等待语音指令…"
-                    else getString(R.string.status_idle)
-                )
+                setStatus(if (AppConfig.cyclingMode) "已进入骑行模式，等待语音指令…" else getString(R.string.status_idle))
                 setListening(false)
             }
         }
         VoiceController.onSpeakingChange = { speaking ->
-            if (speaking) {
-                setStatus(getString(R.string.status_speaking))
-            }
+            if (speaking) setStatus(getString(R.string.status_speaking))
             setSpeaking(speaking)
         }
     }
 
-    // ===== 虚拟形象动画 =====
-
     private fun startBreathing() {
-        val scaleX = android.animation.ObjectAnimator.ofFloat(binding.avatarContainer, "scaleX", 1.0f, 1.03f).apply {
-            duration = 3600
-            repeatMode = android.animation.ValueAnimator.REVERSE
-            repeatCount = android.animation.ValueAnimator.INFINITE
-            interpolator = AccelerateDecelerateInterpolator()
+        val sx = android.animation.ObjectAnimator.ofFloat(binding.avatarContainer, "scaleX", 1.0f, 1.03f).apply {
+            duration = 3600; repeatMode = android.animation.ValueAnimator.REVERSE
+            repeatCount = android.animation.ValueAnimator.INFINITE; interpolator = AccelerateDecelerateInterpolator()
         }
-        val scaleY = android.animation.ObjectAnimator.ofFloat(binding.avatarContainer, "scaleY", 1.0f, 1.03f).apply {
-            duration = 3600
-            repeatMode = android.animation.ValueAnimator.REVERSE
-            repeatCount = android.animation.ValueAnimator.INFINITE
-            interpolator = AccelerateDecelerateInterpolator()
+        val sy = android.animation.ObjectAnimator.ofFloat(binding.avatarContainer, "scaleY", 1.0f, 1.03f).apply {
+            duration = 3600; repeatMode = android.animation.ValueAnimator.REVERSE
+            repeatCount = android.animation.ValueAnimator.INFINITE; interpolator = AccelerateDecelerateInterpolator()
         }
-        breathingAnim = android.animation.AnimatorSet().apply {
-            playTogether(scaleX, scaleY)
-            start()
-        }
+        breathingAnim = android.animation.AnimatorSet().apply { playTogether(sx, sy); start() }
     }
 
     private fun setSpeaking(speaking: Boolean) {
@@ -136,16 +117,12 @@ class ChatFragment : Fragment() {
         if (speaking) {
             glowAnim?.cancel()
             glowAnim = android.animation.ObjectAnimator.ofFloat(b.avatarGlow, "alpha", 0f, 0.7f).apply {
-                duration = 900
-                repeatMode = android.animation.ValueAnimator.REVERSE
-                repeatCount = android.animation.ValueAnimator.INFINITE
-                interpolator = AccelerateDecelerateInterpolator()
-                start()
+                duration = 900; repeatMode = android.animation.ValueAnimator.REVERSE
+                repeatCount = android.animation.ValueAnimator.INFINITE; interpolator = AccelerateDecelerateInterpolator(); start()
             }
             mouthAnim?.cancel()
             mouthAnim = android.animation.ValueAnimator.ofFloat(0f, 100f).apply {
-                duration = 5000
-                repeatCount = android.animation.ValueAnimator.INFINITE
+                duration = 5000; repeatCount = android.animation.ValueAnimator.INFINITE
                 addUpdateListener { anim ->
                     val t = anim.animatedValue as Float
                     val v = 0.5f + 0.42f * sin(t * 0.9f).toFloat() + 0.28f * sin(t * 2.1f + 1.5f).toFloat()
@@ -156,13 +133,11 @@ class ChatFragment : Fragment() {
                 start()
             }
         } else {
-            glowAnim?.cancel()
-            glowAnim = null
+            glowAnim?.cancel(); glowAnim = null
             b.avatarGlow.animate().alpha(0f).setDuration(300).start()
-            mouthAnim?.cancel()
-            mouthAnim = null
-            val startVal = mouthValue
-            android.animation.ValueAnimator.ofFloat(startVal, 0f).apply {
+            mouthAnim?.cancel(); mouthAnim = null
+            val sv = mouthValue
+            android.animation.ValueAnimator.ofFloat(sv, 0f).apply {
                 duration = 250
                 addUpdateListener { anim ->
                     mouthValue = anim.animatedValue as Float
@@ -177,29 +152,22 @@ class ChatFragment : Fragment() {
     private fun setListening(listening: Boolean) {
         val b = _binding ?: return
         if (listening) {
-            glowAnim?.cancel()
-            glowAnim = null
+            glowAnim?.cancel(); glowAnim = null
             b.avatarGlow.animate().alpha(0.35f).setDuration(400).setInterpolator(DecelerateInterpolator()).start()
         } else {
             b.avatarGlow.animate().alpha(0f).setDuration(300).start()
         }
     }
 
-    // ===== 业务逻辑 =====
-
     private fun hasRecordPermission(): Boolean =
-        ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.RECORD_AUDIO) ==
-                PackageManager.PERMISSION_GRANTED
+        ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
 
-    private fun setStatus(s: String) {
-        binding.statusText.text = s
-    }
+    private fun setStatus(s: String) { binding.statusText.text = s }
 
     private fun onVoiceResult(text: String) {
         adapter.add(ChatItem(true, text))
         history.add(ChatEngine.Msg("user", text))
         if (history.size > 20) history.removeAt(0)
-
         if (AppConfig.cyclingMode && AppConfig.localCommandMatching) {
             val cmd = CommandRouter.match(text)
             if (cmd != null) {
@@ -212,7 +180,6 @@ class ChatFragment : Fragment() {
                 return
             }
         }
-
         if (AppConfig.llmBaseUrl.isBlank()) {
             val reply = "我还没接入大模型，请先到「设置」页配置接口地址和 Key；也可以开启骑行模式试试本地语音指令。"
             adapter.add(ChatItem(false, reply))
@@ -221,7 +188,6 @@ class ChatFragment : Fragment() {
             VoiceController.speak(reply)
             return
         }
-
         sendToLLM()
     }
 
@@ -229,12 +195,9 @@ class ChatFragment : Fragment() {
         adapter.add(ChatItem(false, "…"))
         setStatus(getString(R.string.status_thinking))
         val msgs = mutableListOf<ChatEngine.Msg>()
-        if (AppConfig.systemPrompt.isNotBlank()) {
-            msgs.add(ChatEngine.Msg("system", AppConfig.systemPrompt))
-        }
+        if (AppConfig.systemPrompt.isNotBlank()) msgs.add(ChatEngine.Msg("system", AppConfig.systemPrompt))
         msgs.addAll(history)
         binding.micButton.isEnabled = false
-
         viewLifecycleOwner.lifecycleScope.launch {
             var reply = ""
             try {
@@ -262,12 +225,8 @@ class ChatFragment : Fragment() {
     }
 
     override fun onDestroyView() {
-        breathingAnim?.cancel()
-        glowAnim?.cancel()
-        mouthAnim?.cancel()
-        breathingAnim = null
-        glowAnim = null
-        mouthAnim = null
+        breathingAnim?.cancel(); glowAnim?.cancel(); mouthAnim?.cancel()
+        breathingAnim = null; glowAnim = null; mouthAnim = null
         super.onDestroyView()
         _binding = null
     }

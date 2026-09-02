@@ -1,4 +1,3 @@
-# Build / local files (not uploaded)
 .gradle/
 build/
 app/build/
@@ -7,24 +6,16 @@ keystore/riding.jks
 release/
 *.apk
 *.log
-
-# legacy PNG launcher icons (replaced by vector mipmap)
 app/src/main/res/mipmap-mdpi/
 app/src/main/res/mipmap-hdpi/
 app/src/main/res/mipmap-xhdpi/
 app/src/main/res/mipmap-xxhdpi/
 app/src/main/res/mipmap-xxxhdpi/
 _res_bak/
-
-# binary assets (stored as .b64 text, decoded at build time)
 app/src/main/res/drawable/avatar_closed.jpg
 app/src/main/res/drawable/avatar_open.jpg
-
-# IDE
 .idea/
 *.iml
 .vscode/
-
-# OS
 Thumbs.db
 .DS_Store

@@ -60,6 +60,7 @@ class ChatFragment : Fragment() {
             adapter.add(ChatItem(false, "你好！我是骑行小智。点下方麦克风跟我说话；开启骑行模式后，音乐和音量指令会在本地直执，风噪下更稳定。"))
         }
         startBreathing()
+        applyCharacter()
         binding.cyclingSwitch.isChecked = AppConfig.cyclingMode
         binding.cyclingSwitch.setOnCheckedChangeListener { _, checked ->
             AppConfig.cyclingMode = checked
@@ -98,6 +99,28 @@ class ChatFragment : Fragment() {
             if (speaking) setStatus(getString(R.string.status_speaking))
             setSpeaking(speaking)
         }
+    }
+
+    private fun applyCharacter() {
+        val c = AppConfig.currentCharacter
+        val closed = when (c) {
+            2 -> R.drawable.avatar2_closed
+            3 -> R.drawable.avatar3_closed
+            else -> R.drawable.avatar1_closed
+        }
+        val open = when (c) {
+            2 -> R.drawable.avatar2_open
+            3 -> R.drawable.avatar3_open
+            else -> R.drawable.avatar1_open
+        }
+        binding.avatarClosed.setImageResource(closed)
+        binding.avatarOpen.setImageResource(open)
+        val name = when (c) {
+            2 -> R.string.char2_name
+            3 -> R.string.char3_name
+            else -> R.string.char1_name
+        }
+        binding.avatarName.setText(name)
     }
 
     private fun startBreathing() {
@@ -221,7 +244,10 @@ class ChatFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        _binding?.let { it.cyclingSwitch.isChecked = AppConfig.cyclingMode }
+        _binding?.let {
+            it.cyclingSwitch.isChecked = AppConfig.cyclingMode
+            applyCharacter()
+        }
     }
 
     override fun onDestroyView() {

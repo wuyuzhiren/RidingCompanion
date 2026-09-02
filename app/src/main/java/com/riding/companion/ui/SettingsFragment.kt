@@ -53,6 +53,11 @@ class SettingsFragment : Fragment() {
         binding.sbDuck.progress = AppConfig.duckLevel.coerceIn(0, 100)
         binding.swLocalCmd.isChecked = AppConfig.localCommandMatching
         binding.swBeep.isChecked = AppConfig.cyclingBeep
+        when (AppConfig.currentCharacter) {
+            2 -> binding.rgCharacter.check(R.id.rbChar2)
+            3 -> binding.rgCharacter.check(R.id.rbChar3)
+            else -> binding.rgCharacter.check(R.id.rbChar1)
+        }
     }
 
     private fun saveConfig() {
@@ -67,6 +72,11 @@ class SettingsFragment : Fragment() {
         AppConfig.duckLevel = binding.sbDuck.progress
         AppConfig.localCommandMatching = binding.swLocalCmd.isChecked
         AppConfig.cyclingBeep = binding.swBeep.isChecked
+        AppConfig.currentCharacter = when (binding.rgCharacter.checkedRadioButtonId) {
+            R.id.rbChar2 -> 2
+            R.id.rbChar3 -> 3
+            else -> 1
+        }
         VoiceController.applyTtsRate()
         Toast.makeText(requireContext(), R.string.settings_saved, Toast.LENGTH_SHORT).show()
     }

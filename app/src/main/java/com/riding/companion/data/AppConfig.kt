@@ -53,4 +53,8 @@ object AppConfig {
     var duckLevel: Int
         get() = sp.getInt("duck_level", 10)
         set(v) { sp.edit().putInt("duck_level", v).apply() }
+
+    var currentCharacter: Int
+        get() = sp.getInt("current_character", 1)
+        set(v) { sp.edit().putInt("current_character", v.coerceIn(1, 3)).apply() }
 }

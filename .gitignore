@@ -1,0 +1,26 @@
+# Build / local files (not uploaded)
+.gradle/
+build/
+app/build/
+local.properties
+keystore/riding.jks
+release/
+*.apk
+*.log
+
+# legacy PNG launcher icons (replaced by vector mipmap)
+app/src/main/res/mipmap-mdpi/
+app/src/main/res/mipmap-hdpi/
+app/src/main/res/mipmap-xhdpi/
+app/src/main/res/mipmap-xxhdpi/
+app/src/main/res/mipmap-xxxhdpi/
+_res_bak/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# OS
+Thumbs.db
+.DS_Store

@@ -4,7 +4,6 @@ import android.graphics.Color
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import android.widget.LinearLayout
 import androidx.recyclerview.widget.RecyclerView
 import com.riding.companion.R
 import com.riding.companion.databinding.ItemChatMsgBinding
@@ -26,7 +25,6 @@ class ChatAdapter : RecyclerView.Adapter<ChatAdapter.VH>() {
         val item = items[position]
         val b = holder.binding
         b.bubble.text = item.text
-        val lp = b.msgRow.layoutParams as LinearLayout.LayoutParams
         if (item.isUser) {
             b.msgRow.gravity = Gravity.END
             b.bubble.setBackgroundResource(R.drawable.bg_bubble_user)
@@ -36,7 +34,6 @@ class ChatAdapter : RecyclerView.Adapter<ChatAdapter.VH>() {
             b.bubble.setBackgroundResource(R.drawable.bg_bubble_ai)
             b.bubble.setTextColor(Color.parseColor("#1A1A1A"))
         }
-        b.msgRow.layoutParams = lp
     }
 
     override fun getItemCount(): Int = items.size

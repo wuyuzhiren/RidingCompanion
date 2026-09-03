@@ -64,11 +64,21 @@ object ChatEngine {
                             val jo = JSONObject(data)
                             val choices = jo.optJSONArray("choices")
                             if (choices != null && choices.length() > 0) {
-                                val obj = choices.getJSONObject(0).optJSONObject("delta")
-                                val delta = obj?.optString("content", "") ?: ""
-                                if (delta.isNotEmpty()) {
-                                    sb.append(delta)
-                                    onDelta(delta)
+                                val obj = choices.getJSONObject(0).optJSONObject("delta") ?: continue
+                                // 优先取正式回答 content；推理模型先出 reasoning_content，也拼进去显示
+                                var txt = ""
+                                val c = obj.opt("content")
+                                if (c is String && c.isNotEmpty()) {
+                                    txt = c
+                                } else {
+                                    val rc = obj.opt("reasoning_content")
+                                    if (rc is String && rc.isNotEmpty()) {
+                                        txt = rc
+                                    }
+                                }
+                                if (txt.isNotEmpty()) {
+                                    sb.append(txt)
+                                    onDelta(txt)
                                 }
                             }
                         } catch (_: Exception) {

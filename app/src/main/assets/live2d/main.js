@@ -78,6 +78,7 @@
         model.autoUpdate = true;
         model.autoInteract = true;
         window.__model = m; // 调试用
+        window.__live2dReady = true; // 就绪标志，供宿主检测
         app.stage.addChild(model);
         fitModel();
         // 点击身体互动
@@ -92,6 +93,7 @@
       .catch(function (err) {
         // eslint-disable-next-line no-console
         console.error('Live2D load error:', err);
+        window.__live2dReady = false;
       });
 
     // 每帧：口型平滑 + 说话点头 + 呼吸 + 互动表情

@@ -4,6 +4,9 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.util.Log
 import android.view.GestureDetector
 import android.view.LayoutInflater
 import android.view.MotionEvent
@@ -11,6 +14,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.animation.DecelerateInterpolator
+import android.webkit.ConsoleMessage
+import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebView
@@ -52,6 +57,8 @@ class ChatFragment : Fragment() {
     // Live2D 形象
     private var live2dActive = false
     private var live2dWebView: WebView? = null
+    private var live2dFallback = false
+    private val live2dHandler = Handler(Looper.getMainLooper())
 
     // 当前角色四帧资源：闭嘴(待机)/张嘴(说话)/眨眼/害羞反应
     private var curClosedRes = R.drawable.avatar1_closed
@@ -134,7 +141,7 @@ class ChatFragment : Fragment() {
 
     private fun applyCharacter() {
         val c = AppConfig.currentCharacter
-        live2dActive = (c == 0)
+        live2dActive = (c == 0 && !live2dFallback)
         val b = _binding ?: return
         if (live2dActive) {
             b.live2dView.visibility = View.VISIBLE
@@ -146,10 +153,19 @@ class ChatFragment : Fragment() {
         b.live2dView.visibility = View.GONE
         b.avatarClosed.visibility = View.VISIBLE
         b.avatarOpen.visibility = View.VISIBLE
-        curClosedRes = when (c) { 2 -> R.drawable.avatar2_closed; 3 -> R.drawable.avatar3_closed; else -> R.drawable.avatar1_closed }
-        curOpenRes = when (c) { 2 -> R.drawable.avatar2_open; 3 -> R.drawable.avatar3_open; else -> R.drawable.avatar1_open }
-        curBlinkRes = when (c) { 2 -> R.drawable.avatar2_blink; 3 -> R.drawable.avatar3_blink; else -> R.drawable.avatar1_blink }
-        curReactRes = when (c) { 2 -> R.drawable.avatar2_react; 3 -> R.drawable.avatar3_react; else -> R.drawable.avatar1_react }
+        if (c == 0) {
+            // 原 Live2D 但已降级：显示 2D 少女作为兜底
+            live2dFallback = true
+            curClosedRes = R.drawable.avatar1_closed
+            curOpenRes = R.drawable.avatar1_open
+            curBlinkRes = R.drawable.avatar1_blink
+            curReactRes = R.drawable.avatar1_react
+        } else {
+            curClosedRes = when (c) { 2 -> R.drawable.avatar2_closed; 3 -> R.drawable.avatar3_closed; else -> R.drawable.avatar1_closed }
+            curOpenRes = when (c) { 2 -> R.drawable.avatar2_open; 3 -> R.drawable.avatar3_open; else -> R.drawable.avatar1_open }
+            curBlinkRes = when (c) { 2 -> R.drawable.avatar2_blink; 3 -> R.drawable.avatar3_blink; else -> R.drawable.avatar1_blink }
+            curReactRes = when (c) { 2 -> R.drawable.avatar2_react; 3 -> R.drawable.avatar3_react; else -> R.drawable.avatar1_react }
+        }
         b.avatarClosed.setImageResource(curClosedRes)
         b.avatarOpen.setImageResource(curOpenRes)
         b.avatarClosed.alpha = 1f
@@ -173,11 +189,50 @@ class ChatFragment : Fragment() {
         val loader = WebViewAssetLoader.Builder()
             .addPathHandler("/assets/", WebViewAssetLoader.AssetsPathHandler(requireContext()))
             .build()
+        wv.webChromeClient = object : WebChromeClient() {
+            override fun onConsoleMessage(msg: ConsoleMessage): Boolean {
+                Log.d("Live2D", "[${msg.messageLevel()}] ${msg.message()} @${msg.lineNumber()}")
+                return true
+            }
+        }
         wv.webViewClient = object : WebViewClient() {
             override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? =
                 loader.shouldInterceptRequest(request.url)
+            override fun onPageFinished(view: WebView, url: String) {
+                // 页面加载完，等待 JS 就绪；超时后降级 2D
+                live2dHandler.removeCallbacksAndMessages(null)
+                live2dHandler.postDelayed({ checkLive2dReady(0) }, 1500)
+            }
+            override fun onReceivedError(
+                view: WebView,
+                request: WebResourceRequest,
+                error: android.webkit.WebResourceError
+            ) {
+                if (request.isForMainFrame) {
+                    Log.w("Live2D", "页面加载失败: ${error.errorCode} ${error.description}")
+                    live2dFallback = true
+                    _binding?.let { applyCharacter() }
+                }
+            }
         }
         wv.loadUrl("https://appassets.androidplatform.net/assets/live2d/index.html")
+    }
+
+    private fun checkLive2dReady(attempt: Int) {
+        val wv = live2dWebView ?: return
+        if (attempt > 6) {
+            Log.w("Live2D", "Live2D 就绪超时，降级到 2D 形象")
+            live2dFallback = true
+            _binding?.let { applyCharacter() }
+            return
+        }
+        wv.evaluateJavascript("window.__live2dReady === true") { result ->
+            if (result == "true") {
+                Log.i("Live2D", "Live2D 就绪")
+            } else if (!isDetached) {
+                live2dHandler.postDelayed({ checkLive2dReady(attempt + 1) }, 1000)
+            }
+        }
     }
 
     private fun driveLive2dMouth(v: Float) {
@@ -416,6 +471,7 @@ class ChatFragment : Fragment() {
         blinkJob?.cancel(); blinkJob = null
         breathingAnim?.cancel(); glowAnim?.cancel(); mouthAnim?.cancel()
         breathingAnim = null; glowAnim = null; mouthAnim = null
+        live2dHandler.removeCallbacksAndMessages(null)
         _binding?.live2dView?.removeAllViews()
         super.onDestroyView()
         _binding = null

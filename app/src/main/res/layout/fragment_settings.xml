@@ -65,6 +65,7 @@
             android:layout_height="wrap_content"
             android:hint="deepseek-chat"
             android:inputType="text"
+            android:completionThreshold="1"
             android:autofillHints="" />
 
         <com.google.android.material.button.MaterialButton

@@ -32,6 +32,8 @@
     <string name="settings_fetch_models">自动识别可用模型</string>
     <string name="fetching_models">正在识别模型…</string>
     <string name="fetch_models_ok">已识别到 %1$d 个模型，可下拉选择或手动修改</string>
+    <string name="fetch_models_pick">选择模型（共 %1$d 个）</string>
+    <string name="fetch_models_manual">手动输入</string>
     <string name="fetch_models_fail">模型识别失败：%1$s</string>
     <string name="fetch_models_need_url">请先填写接口地址（Base URL）</string>
     <string name="fetch_models_empty">服务端没有返回任何模型</string>

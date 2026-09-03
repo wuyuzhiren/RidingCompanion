@@ -9,6 +9,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.riding.companion.R
 import com.riding.companion.audio.VoiceController
 import com.riding.companion.data.AppConfig
@@ -107,15 +108,21 @@ class SettingsFragment : Fragment() {
             try {
                 val models = ChatEngine.fetchModels()
                 if (models.isEmpty()) throw RuntimeException(getString(R.string.fetch_models_empty))
+                // 输入框下拉也能选
                 val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, models)
                 b.etModel.setAdapter(adapter)
                 b.etModel.setText(models.first())
-                b.etModel.showDropDown()
-                Toast.makeText(
-                    requireContext(),
-                    getString(R.string.fetch_models_ok, models.size),
-                    Toast.LENGTH_LONG
-                ).show()
+                // 弹列表对话框直接选择（最稳）
+                val items = models.toTypedArray()
+                MaterialAlertDialogBuilder(requireContext())
+                    .setTitle(getString(R.string.fetch_models_pick, models.size))
+                    .setItems(items) { _, which ->
+                        val picked = items[which]
+                        b.etModel.setText(picked)
+                        AppConfig.llmModel = picked
+                    }
+                    .setPositiveButton(R.string.fetch_models_manual, null)
+                    .show()
             } catch (e: Exception) {
                 val keyLen = AppConfig.llmApiKey.length
                 val keyHint = if (keyLen == 0) "（Key 为空）" else "（Key 长度 $keyLen，${if (keyLen < 20) "过短，可能没粘贴完整" else "已填写"}）"

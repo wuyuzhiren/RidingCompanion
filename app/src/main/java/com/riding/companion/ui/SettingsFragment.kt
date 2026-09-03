@@ -98,6 +98,9 @@ class SettingsFragment : Fragment() {
             Toast.makeText(requireContext(), R.string.fetch_models_need_url, Toast.LENGTH_SHORT).show()
             return
         }
+        // 识别前先把输入框里的最新内容写入配置，避免用到旧的（空）Key
+        AppConfig.llmBaseUrl = b.etBaseUrl.text.toString().trim()
+        AppConfig.llmApiKey = b.etApiKey.text.toString().trim()
         b.btnFetchModels.isEnabled = false
         b.btnFetchModels.text = getString(R.string.fetching_models)
         viewLifecycleOwner.lifecycleScope.launch {
@@ -114,9 +117,11 @@ class SettingsFragment : Fragment() {
                     Toast.LENGTH_LONG
                 ).show()
             } catch (e: Exception) {
+                val keyLen = AppConfig.llmApiKey.length
+                val keyHint = if (keyLen == 0) "（Key 为空）" else "（Key 长度 $keyLen，${if (keyLen < 20) "过短，可能没粘贴完整" else "已填写"}）"
                 Toast.makeText(
                     requireContext(),
-                    getString(R.string.fetch_models_fail, e.message ?: "未知错误"),
+                    getString(R.string.fetch_models_fail, e.message ?: "未知错误") + " $keyHint",
                     Toast.LENGTH_LONG
                 ).show()
             } finally {

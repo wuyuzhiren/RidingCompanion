@@ -83,20 +83,40 @@ object ChatEngine {
         }
 
     /**
-     * 自动识别服务商支持的模型列表（OpenAI 兼容 /models 接口）。
-     * 自动尝试常见路径：{base}/models、{base}/v1/models 等，返回模型 ID 列表。
+     * 自动识别服务商支持的模型列表。
+     * 自动探测常见路径：{base}/models、{base}/v1/models（OpenAI 兼容）、
+     * {base}/api/tags（Ollama 原生）等；兼容 data[].id 与 models[].name 两种返回格式。
+     * 失败时返回已尝试过的地址明细，方便定位。
      */
     suspend fun fetchModels(): List<String> = withContext(Dispatchers.IO) {
         val base = AppConfig.llmBaseUrl.trim().trimEnd('/')
         require(base.isNotEmpty()) { "未配置大模型接口地址" }
-        val candidates = mutableListOf("$base/models")
-        if (base.endsWith("/v1")) {
-            candidates.add(base.removeSuffix("/v1") + "/models")
+        // 归一化：去掉可能误填的 /chat/completions 尾巴
+        var root = base
+        if (root.endsWith("/v1/chat/completions")) root = root.removeSuffix("/v1/chat/completions")
+        if (root.endsWith("/chat/completions")) root = root.removeSuffix("/chat/completions")
+
+        val candidates = linkedSetOf<String>()
+        if (root.endsWith("/v1")) {
+            candidates.add("$root/models")
+            candidates.add(root.removeSuffix("/v1") + "/models")
+            candidates.add(root.removeSuffix("/v1") + "/v1/models")
+            candidates.add(root.removeSuffix("/v1") + "/api/tags")
+        } else if (root.endsWith("/api")) {
+            candidates.add("$root/v1/models")
+            candidates.add("$root/tags")
+            candidates.add("$root/models")
         } else {
-            candidates.add("$base/v1/models")
+            candidates.add("$root/models")
+            candidates.add("$root/v1/models")
+            candidates.add("$root/api/tags")
         }
+
+        val attempts = mutableListOf<String>()
         var lastErr: Exception? = null
-        for (u in candidates.distinct()) {
+        for (u in candidates) {
+            if (attempts.contains(u)) continue
+            attempts.add(u)
             val conn = try {
                 (URL(u).openConnection() as HttpURLConnection).apply {
                     requestMethod = "GET"
@@ -114,16 +134,25 @@ object ChatEngine {
                 val code = conn.responseCode
                 if (code !in 200..299) {
                     val err = conn.errorStream?.bufferedReader()?.use { it.readText() } ?: "HTTP $code"
-                    lastErr = RuntimeException("接口返回 $code：${err.take(200)}")
+                    lastErr = RuntimeException("$u → $code：${err.take(120)}")
                     continue
                 }
                 val text = conn.inputStream.bufferedReader().use { it.readText() }
                 val jo = JSONObject(text)
-                val data = jo.optJSONArray("data") ?: continue
                 val ids = mutableListOf<String>()
-                for (i in 0 until data.length()) {
-                    val id = data.optJSONObject(i)?.optString("id")
-                    if (!id.isNullOrBlank()) ids.add(id)
+                val data = jo.optJSONArray("data")
+                if (data != null) {
+                    for (i in 0 until data.length()) {
+                        val id = data.optJSONObject(i)?.optString("id")
+                        if (!id.isNullOrBlank()) ids.add(id)
+                    }
+                }
+                val models = jo.optJSONArray("models")
+                if (models != null) {
+                    for (i in 0 until models.length()) {
+                        val name = models.optJSONObject(i)?.optString("name")
+                        if (!name.isNullOrBlank()) ids.add(name)
+                    }
                 }
                 if (ids.isNotEmpty()) return@withContext ids
             } catch (e: Exception) {
@@ -132,6 +161,7 @@ object ChatEngine {
                 conn.disconnect()
             }
         }
-        throw RuntimeException("无法识别模型列表：${lastErr?.message ?: "未知错误"}")
+        val diag = attempts.joinToString("；")
+        throw RuntimeException("已尝试 $diag 均失败（最后错误：${lastErr?.message ?: "未知"}）。若该服务不提供模型列表，请手动输入模型名。")
     }
 }

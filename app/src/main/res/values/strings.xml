@@ -41,6 +41,11 @@
     <string name="settings_temp">温度（随机性）</string>
     <string name="settings_voice">语音</string>
     <string name="settings_tts_rate">语音播报语速</string>
+    <string name="settings_tts_engine">语音合成引擎（推荐 SiliconFlow，中文自然）</string>
+    <string name="tts_engine_silicon">SiliconFlow 音色</string>
+    <string name="tts_engine_system">系统语音</string>
+    <string name="settings_tts_voice">AI 音色选择</string>
+    <string name="settings_test_tts">测试语音</string>
     <string name="settings_cycling">骑行模式</string>
     <string name="settings_auto_volume">进入骑行模式自动音量（0 为不调整）</string>
     <string name="settings_local_cmd">本地指令直执（播放/暂停/切歌/音量）</string>

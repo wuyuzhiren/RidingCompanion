@@ -137,6 +137,59 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:text="@string/settings_tts_engine"
+            android:textColor="@color/text_secondary"
+            android:textSize="13sp"
+            android:paddingTop="8dp" />
+
+        <RadioGroup
+            android:id="@+id/rgTtsMode"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingTop="4dp">
+
+            <RadioButton
+                android:id="@+id/rbTtsSilicon"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/tts_engine_silicon"
+                android:textSize="13sp" />
+
+            <RadioButton
+                android:id="@+id/rbTtsSystem"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/tts_engine_system"
+                android:textSize="13sp" />
+        </RadioGroup>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/settings_tts_voice"
+            android:textColor="@color/text_secondary"
+            android:textSize="13sp"
+            android:paddingTop="8dp" />
+
+        <Spinner
+            android:id="@+id/spTtsVoice"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnTestTts"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/settings_test_tts" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:text="@string/settings_cycling"
             android:textColor="@color/primary_dark"
             android:textSize="16sp"

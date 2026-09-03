@@ -34,6 +34,20 @@ object AppConfig {
         get() = sp.getFloat("tts_rate", 1.0f)
         set(v) { sp.edit().putFloat("tts_rate", v).apply() }
 
+    /** 语音合成引擎：0=SiliconFlow 高质量TTS(默认), 1=系统TTS */
+    var ttsMode: Int
+        get() = sp.getInt("tts_mode", 0)
+        set(v) { sp.edit().putInt("tts_mode", v.coerceIn(0, 1)).apply() }
+
+    var ttsModel: String
+        get() = sp.getString("tts_model", "FunAudioLLM/CosyVoice2-0.5B") ?: "FunAudioLLM/CosyVoice2-0.5B"
+        set(v) { sp.edit().putString("tts_model", v).apply() }
+
+    /** 音色：FunAudioLLM/CosyVoice2-0.5B:claire 温柔女声 */
+    var ttsVoice: String
+        get() = sp.getString("tts_voice", "FunAudioLLM/CosyVoice2-0.5B:claire") ?: "FunAudioLLM/CosyVoice2-0.5B:claire"
+        set(v) { sp.edit().putString("tts_voice", v).apply() }
+
     var cyclingMode: Boolean
         get() = sp.getBoolean("cycling_mode", false)
         set(v) { sp.edit().putBoolean("cycling_mode", v).apply() }

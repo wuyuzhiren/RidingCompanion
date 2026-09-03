@@ -22,6 +22,18 @@ class SettingsFragment : Fragment() {
     private var _binding: FragmentSettingsBinding? = null
     private val binding get() = _binding!!
 
+    /** 音色显示名 -> voice 参数 */
+    private val ttsVoices = arrayOf(
+        "温柔女声（默认）" to "FunAudioLLM/CosyVoice2-0.5B:claire",
+        "沉稳女声" to "FunAudioLLM/CosyVoice2-0.5B:anna",
+        "激情女声" to "FunAudioLLM/CosyVoice2-0.5B:bella",
+        "欢快女声" to "FunAudioLLM/CosyVoice2-0.5B:diana",
+        "沉稳男声" to "FunAudioLLM/CosyVoice2-0.5B:alex",
+        "低沉男声" to "FunAudioLLM/CosyVoice2-0.5B:benjamin",
+        "磁性男声" to "FunAudioLLM/CosyVoice2-0.5B:charles",
+        "欢快男声" to "FunAudioLLM/CosyVoice2-0.5B:david"
+    )
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
@@ -34,6 +46,15 @@ class SettingsFragment : Fragment() {
         loadConfig()
         binding.btnSave.setOnClickListener { saveConfig() }
         binding.btnFetchModels.setOnClickListener { fetchModels() }
+        binding.btnTestTts.setOnClickListener { testTts() }
+
+        // 音色下拉
+        val voiceAdapter = ArrayAdapter(
+            requireContext(),
+            android.R.layout.simple_spinner_dropdown_item,
+            ttsVoices.map { it.first }
+        )
+        binding.spTtsVoice.adapter = voiceAdapter
 
         val vName = try {
             requireContext().packageManager
@@ -55,6 +76,11 @@ class SettingsFragment : Fragment() {
         binding.etSystemPrompt.setText(AppConfig.systemPrompt)
         binding.etTemp.setText(AppConfig.temperature.toString())
         binding.sbTtsRate.progress = ((AppConfig.ttsRate - 0.5f) / 1.5f * 30).toInt().coerceIn(0, 30)
+        if (AppConfig.ttsMode == 1) binding.rgTtsMode.check(R.id.rbTtsSystem)
+        else binding.rgTtsMode.check(R.id.rbTtsSilicon)
+        val curVoice = AppConfig.ttsVoice
+        val idx = ttsVoices.indexOfFirst { it.second == curVoice }.coerceAtLeast(0)
+        binding.spTtsVoice.setSelection(idx)
         binding.sbAutoVolume.progress = AppConfig.cyclingAutoVolume.coerceIn(0, 100)
         binding.sbDuck.progress = AppConfig.duckLevel.coerceIn(0, 100)
         binding.swLocalCmd.isChecked = AppConfig.localCommandMatching
@@ -86,6 +112,9 @@ class SettingsFragment : Fragment() {
         AppConfig.temperature =
             (binding.etTemp.text.toString().toFloatOrNull() ?: 0.8f).coerceIn(0f, 2f)
         AppConfig.ttsRate = 0.5f + binding.sbTtsRate.progress / 30f * 1.5f
+        AppConfig.ttsMode = if (binding.rgTtsMode.checkedRadioButtonId == R.id.rbTtsSystem) 1 else 0
+        val sel = binding.spTtsVoice.selectedItemPosition
+        if (sel in ttsVoices.indices) AppConfig.ttsVoice = ttsVoices[sel].second
         AppConfig.cyclingAutoVolume = binding.sbAutoVolume.progress
         AppConfig.duckLevel = binding.sbDuck.progress
         AppConfig.localCommandMatching = binding.swLocalCmd.isChecked
@@ -149,6 +178,15 @@ class SettingsFragment : Fragment() {
                 b.btnFetchModels.text = getString(R.string.settings_fetch_models)
             }
         }
+    }
+
+    private fun testTts() {
+        // 只更新语音相关配置再测试，避免弹模型列表
+        AppConfig.ttsMode = if (binding.rgTtsMode.checkedRadioButtonId == R.id.rbTtsSystem) 1 else 0
+        val sel = binding.spTtsVoice.selectedItemPosition
+        if (sel in ttsVoices.indices) AppConfig.ttsVoice = ttsVoices[sel].second
+        AppConfig.ttsRate = 0.5f + binding.sbTtsRate.progress / 30f * 1.5f
+        VoiceController.speak("你好呀，我是你的骑行语音助手，很高兴见到你！")
     }
 
     override fun onDestroyView() {

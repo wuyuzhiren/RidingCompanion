@@ -30,7 +30,7 @@ jobs:
           base64 -d keystore/riding.jks.b64 > keystore/riding.jks
       - name: Decode avatars
         run: |
-          for n in avatar1_closed avatar1_open avatar2_closed avatar2_open avatar3_closed avatar3_open; do
+          for n in avatar1_closed avatar1_open avatar2_closed avatar2_open avatar3_closed avatar3_open avatar1_blink avatar1_react avatar2_blink avatar2_react avatar3_blink avatar3_react; do
             base64 -d binary-assets/$n.jpg.b64 > app/src/main/res/drawable/$n.jpg
           done
           ls -la app/src/main/res/drawable/avatar*.jpg

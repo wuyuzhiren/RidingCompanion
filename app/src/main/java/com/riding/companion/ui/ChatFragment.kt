@@ -3,7 +3,9 @@ package com.riding.companion.ui
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.view.GestureDetector
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AccelerateDecelerateInterpolator
@@ -21,8 +23,11 @@ import com.riding.companion.cycling.CyclingService
 import com.riding.companion.data.AppConfig
 import com.riding.companion.data.ChatEngine
 import com.riding.companion.databinding.FragmentChatBinding
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.sin
+import kotlin.random.Random
 
 class ChatFragment : Fragment() {
 
@@ -35,6 +40,14 @@ class ChatFragment : Fragment() {
     private var glowAnim: android.animation.ObjectAnimator? = null
     private var mouthAnim: android.animation.ValueAnimator? = null
     private var mouthValue = 0f
+    private var isSpeaking = false
+    private var blinkJob: Job? = null
+
+    // 当前角色四帧资源：闭嘴(待机)/张嘴(说话)/眨眼/害羞反应
+    private var curClosedRes = R.drawable.avatar1_closed
+    private var curOpenRes = R.drawable.avatar1_open
+    private var curBlinkRes = R.drawable.avatar1_blink
+    private var curReactRes = R.drawable.avatar1_react
 
     private val recordLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
@@ -57,10 +70,11 @@ class ChatFragment : Fragment() {
         binding.chatList.layoutManager = LinearLayoutManager(requireContext())
         binding.chatList.adapter = adapter
         if (adapter.items.isEmpty()) {
-            adapter.add(ChatItem(false, "你好！我是骑行小智。点下方麦克风跟我说话；开启骑行模式后，音乐和音量指令会在本地直执，风噪下更稳定。"))
+            adapter.add(ChatItem(false, "你好！我是骑行小智。点下方麦克风跟我说话，或在输入框打字；点我也会有反应哦～"))
         }
         startBreathing()
         applyCharacter()
+        setupTouchInteraction()
         binding.cyclingSwitch.isChecked = AppConfig.cyclingMode
         binding.cyclingSwitch.setOnCheckedChangeListener { _, checked ->
             AppConfig.cyclingMode = checked
@@ -84,6 +98,12 @@ class ChatFragment : Fragment() {
                 }
             }
         }
+        binding.btnSend.setOnClickListener {
+            val text = binding.etInput.text.toString().trim()
+            if (text.isEmpty()) return@setOnClickListener
+            binding.etInput.setText("")
+            handleUserInput(text)
+        }
         VoiceController.onResult = { text -> onVoiceResult(text) }
         VoiceController.onError = { err -> setStatus(err) }
         VoiceController.onListeningChange = { listening ->
@@ -103,24 +123,18 @@ class ChatFragment : Fragment() {
 
     private fun applyCharacter() {
         val c = AppConfig.currentCharacter
-        val closed = when (c) {
-            2 -> R.drawable.avatar2_closed
-            3 -> R.drawable.avatar3_closed
-            else -> R.drawable.avatar1_closed
-        }
-        val open = when (c) {
-            2 -> R.drawable.avatar2_open
-            3 -> R.drawable.avatar3_open
-            else -> R.drawable.avatar1_open
-        }
-        binding.avatarClosed.setImageResource(closed)
-        binding.avatarOpen.setImageResource(open)
-        val name = when (c) {
-            2 -> R.string.char2_name
-            3 -> R.string.char3_name
-            else -> R.string.char1_name
-        }
+        curClosedRes = when (c) { 2 -> R.drawable.avatar2_closed; 3 -> R.drawable.avatar3_closed; else -> R.drawable.avatar1_closed }
+        curOpenRes = when (c) { 2 -> R.drawable.avatar2_open; 3 -> R.drawable.avatar3_open; else -> R.drawable.avatar1_open }
+        curBlinkRes = when (c) { 2 -> R.drawable.avatar2_blink; 3 -> R.drawable.avatar3_blink; else -> R.drawable.avatar1_blink }
+        curReactRes = when (c) { 2 -> R.drawable.avatar2_react; 3 -> R.drawable.avatar3_react; else -> R.drawable.avatar1_react }
+        binding.avatarClosed.setImageResource(curClosedRes)
+        binding.avatarOpen.setImageResource(curOpenRes)
+        binding.avatarClosed.alpha = 1f
+        binding.avatarOpen.alpha = 0f
+        mouthValue = 0f
+        val name = when (c) { 2 -> R.string.char2_name; 3 -> R.string.char3_name; else -> R.string.char1_name }
         binding.avatarName.setText(name)
+        startBlinkLoop()
     }
 
     private fun startBreathing() {
@@ -135,8 +149,73 @@ class ChatFragment : Fragment() {
         breathingAnim = android.animation.AnimatorSet().apply { playTogether(sx, sy); start() }
     }
 
+    /** 待机眨眼：随机间隔 2.5~4 秒眨眼一次（说话时跳过） */
+    private fun startBlinkLoop() {
+        blinkJob?.cancel()
+        blinkJob = viewLifecycleOwner.lifecycleScope.launch {
+            while (true) {
+                delay(Random.nextLong(2500, 4200))
+                if (isSpeaking) continue
+                val b = _binding ?: continue
+                b.avatarClosed.setImageResource(curBlinkRes)
+                b.avatarClosed.postDelayed({
+                    if (!isSpeaking) _binding?.avatarClosed?.setImageResource(curClosedRes)
+                }, 160)
+            }
+        }
+    }
+
+    /** 点角色不同部位 → 害羞/惊讶反应帧 + 聊天气泡 */
+    private fun setupTouchInteraction() {
+        val gd = GestureDetector(requireContext(), object : GestureDetector.SimpleOnGestureListener() {
+            override fun onDown(e: MotionEvent): Boolean = true
+            override fun onSingleTapUp(e: MotionEvent): Boolean {
+                handleTouch(e)
+                return true
+            }
+        })
+        binding.avatarContainer.setOnTouchListener { _, event -> gd.onTouchEvent(event) }
+    }
+
+    private fun handleTouch(e: MotionEvent) {
+        val b = _binding ?: return
+        val h = b.avatarContainer.height.toFloat()
+        val relY = e.y / h
+        val zone = when {
+            relY < 0.40f -> "head"
+            relY < 0.72f -> "face"
+            else -> "body"
+        }
+        val c = AppConfig.currentCharacter
+        val reply = when (c) {
+            2 -> when (zone) {
+                "head" -> "嘿嘿，别弄乱我头发啦～"
+                "face" -> "嗯？我脸上有什么吗？"
+                else -> "怎么啦，有事找我？"
+            }
+            3 -> when (zone) {
+                "head" -> "嗯，别闹。"
+                "face" -> "这样盯着看，我会害羞的。"
+                else -> "说吧，找我有事？"
+            }
+            else -> when (zone) {
+                "head" -> "诶？！别摸头啦…"
+                "face" -> "呜…脸会红的…"
+                else -> "呀！吓我一跳…"
+            }
+        }
+        b.avatarClosed.setImageResource(curReactRes)
+        b.avatarClosed.animate().alpha(1f).setDuration(80).start()
+        b.avatarClosed.postDelayed({
+            if (!isSpeaking) _binding?.avatarClosed?.setImageResource(curClosedRes)
+        }, 1300)
+        adapter.add(ChatItem(false, "（你轻轻碰了碰她）$reply"))
+        binding.chatList.scrollToPosition(adapter.items.size - 1)
+    }
+
     private fun setSpeaking(speaking: Boolean) {
         val b = _binding ?: return
+        isSpeaking = speaking
         if (speaking) {
             glowAnim?.cancel()
             glowAnim = android.animation.ObjectAnimator.ofFloat(b.avatarGlow, "alpha", 0f, 0.7f).apply {
@@ -152,6 +231,8 @@ class ChatFragment : Fragment() {
                     mouthValue = v.coerceIn(0f, 1f)
                     b.avatarClosed.alpha = 1f - mouthValue
                     b.avatarOpen.alpha = mouthValue
+                    // 说话时轻微点头
+                    b.avatarContainer.rotation = (sin(t * 0.7f) * 3f).toFloat()
                 }
                 start()
             }
@@ -169,6 +250,9 @@ class ChatFragment : Fragment() {
                 }
                 start()
             }
+            b.avatarContainer.animate().rotation(0f).setDuration(250).start()
+            // 说完回到待机闭嘴帧
+            b.avatarClosed.postDelayed({ _binding?.avatarClosed?.setImageResource(curClosedRes) }, 260)
         }
     }
 
@@ -188,6 +272,10 @@ class ChatFragment : Fragment() {
     private fun setStatus(s: String) { binding.statusText.text = s }
 
     private fun onVoiceResult(text: String) {
+        handleUserInput(text)
+    }
+
+    private fun handleUserInput(text: String) {
         adapter.add(ChatItem(true, text))
         history.add(ChatEngine.Msg("user", text))
         if (history.size > 20) history.removeAt(0)
@@ -250,7 +338,18 @@ class ChatFragment : Fragment() {
         }
     }
 
+    override fun onHiddenChanged(hidden: Boolean) {
+        super.onHiddenChanged(hidden)
+        if (!hidden) {
+            _binding?.let {
+                it.cyclingSwitch.isChecked = AppConfig.cyclingMode
+                applyCharacter()
+            }
+        }
+    }
+
     override fun onDestroyView() {
+        blinkJob?.cancel(); blinkJob = null
         breathingAnim?.cancel(); glowAnim?.cancel(); mouthAnim?.cancel()
         breathingAnim = null; glowAnim = null; mouthAnim = null
         super.onDestroyView()

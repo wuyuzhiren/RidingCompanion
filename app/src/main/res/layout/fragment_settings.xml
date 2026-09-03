@@ -59,12 +59,21 @@
             android:textSize="13sp"
             android:paddingTop="8dp" />
 
-        <EditText
+        <AutoCompleteTextView
             android:id="@+id/etModel"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="deepseek-chat"
+            android:inputType="text"
             android:autofillHints="" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnFetchModels"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/settings_fetch_models" />
 
         <TextView
             android:layout_width="match_parent"

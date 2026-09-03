@@ -18,8 +18,15 @@ app/src/main/res/drawable/avatar2_closed.jpg
 app/src/main/res/drawable/avatar2_open.jpg
 app/src/main/res/drawable/avatar3_closed.jpg
 app/src/main/res/drawable/avatar3_open.jpg
+app/src/main/res/drawable/avatar1_blink.jpg
+app/src/main/res/drawable/avatar1_react.jpg
+app/src/main/res/drawable/avatar2_blink.jpg
+app/src/main/res/drawable/avatar2_react.jpg
+app/src/main/res/drawable/avatar3_blink.jpg
+app/src/main/res/drawable/avatar3_react.jpg
 .idea/
 *.iml
 .vscode/
 Thumbs.db
 .DS_Store
+push_via_api.ps1

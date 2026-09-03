@@ -40,11 +40,30 @@
         android:gravity="center" android:paddingVertical="6dp" android:text="@string/status_idle"
         android:textColor="@color/text_secondary" android:textSize="13sp" />
 
-    <FrameLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:paddingBottom="16dp" android:paddingTop="4dp">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="horizontal" android:gravity="center_vertical"
+        android:paddingHorizontal="12dp" android:paddingVertical="8dp">
+
+        <EditText android:id="@+id/etInput"
+            android:layout_width="0dp" android:layout_height="wrap_content"
+            android:layout_weight="1" android:minHeight="44dp"
+            android:hint="@string/chat_input_hint"
+            android:inputType="text" android:maxLines="4"
+            android:background="@drawable/bg_input_round"
+            android:paddingHorizontal="14dp" android:paddingVertical="10dp"
+            android:autofillHints="" />
+
+        <ImageButton android:id="@+id/btnSend"
+            android:layout_width="44dp" android:layout_height="44dp"
+            android:layout_marginStart="6dp" android:contentDescription="@string/chat_send"
+            android:src="@drawable/ic_send" android:tint="@color/primary"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:scaleType="centerInside" />
+
         <com.google.android.material.floatingactionbutton.FloatingActionButton android:id="@+id/micButton"
-            android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center_horizontal"
-            android:contentDescription="麦克风" app:srcCompat="@drawable/ic_mic"
-            app:backgroundTint="@color/primary" app:tint="@color/white" />
-    </FrameLayout>
+            android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            app:fabSize="mini" android:contentDescription="麦克风"
+            app:srcCompat="@drawable/ic_mic" app:backgroundTint="@color/primary" app:tint="@color/white" />
+    </LinearLayout>
 </LinearLayout>

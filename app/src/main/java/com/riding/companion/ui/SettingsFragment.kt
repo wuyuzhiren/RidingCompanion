@@ -4,13 +4,17 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import com.riding.companion.R
 import com.riding.companion.audio.VoiceController
 import com.riding.companion.data.AppConfig
+import com.riding.companion.data.ChatEngine
 import com.riding.companion.databinding.FragmentSettingsBinding
+import kotlinx.coroutines.launch
 
 class SettingsFragment : Fragment() {
 
@@ -28,6 +32,7 @@ class SettingsFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         loadConfig()
         binding.btnSave.setOnClickListener { saveConfig() }
+        binding.btnFetchModels.setOnClickListener { fetchModels() }
 
         val vName = try {
             requireContext().packageManager
@@ -79,6 +84,46 @@ class SettingsFragment : Fragment() {
         }
         VoiceController.applyTtsRate()
         Toast.makeText(requireContext(), R.string.settings_saved, Toast.LENGTH_SHORT).show()
+        if (AppConfig.llmBaseUrl.isNotBlank()) {
+            fetchModels()
+        }
+    }
+
+    /**
+     * 自动识别服务商支持的模型列表，填充到下拉框并弹出候选。
+     */
+    private fun fetchModels() {
+        val b = _binding ?: return
+        if (b.etBaseUrl.text.toString().trim().isEmpty()) {
+            Toast.makeText(requireContext(), R.string.fetch_models_need_url, Toast.LENGTH_SHORT).show()
+            return
+        }
+        b.btnFetchModels.isEnabled = false
+        b.btnFetchModels.text = getString(R.string.fetching_models)
+        viewLifecycleOwner.lifecycleScope.launch {
+            try {
+                val models = ChatEngine.fetchModels()
+                if (models.isEmpty()) throw RuntimeException(getString(R.string.fetch_models_empty))
+                val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, models)
+                b.etModel.setAdapter(adapter)
+                b.etModel.setText(models.first())
+                b.etModel.showDropDown()
+                Toast.makeText(
+                    requireContext(),
+                    getString(R.string.fetch_models_ok, models.size),
+                    Toast.LENGTH_LONG
+                ).show()
+            } catch (e: Exception) {
+                Toast.makeText(
+                    requireContext(),
+                    getString(R.string.fetch_models_fail, e.message ?: "未知错误"),
+                    Toast.LENGTH_LONG
+                ).show()
+            } finally {
+                b.btnFetchModels.isEnabled = true
+                b.btnFetchModels.text = getString(R.string.settings_fetch_models)
+            }
+        }
     }
 
     override fun onDestroyView() {

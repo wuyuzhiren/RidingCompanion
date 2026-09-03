@@ -5,11 +5,13 @@
     <string name="tab_music">音乐</string>
     <string name="tab_settings">设置</string>
 
-    <string name="status_idle">点击下方麦克风开始对话</string>
+    <string name="status_idle">点击下方麦克风说话，或在输入框打字</string>
     <string name="status_listening">聆听中…风噪抑制已开启</string>
     <string name="status_thinking">思考中…</string>
     <string name="status_speaking">正在回复语音…</string>
     <string name="status_no_llm">未配置大模型接口，仅本地指令可用（去设置里配置）</string>
+    <string name="chat_input_hint">输入文字，或点麦克风说话</string>
+    <string name="chat_send">发送</string>
     <string name="cycling_on">骑行模式：开</string>
     <string name="cycling_off">骑行模式：关</string>
     <string name="cycling_label">骑行模式</string>
@@ -27,6 +29,12 @@
     <string name="settings_base_url">接口地址 Base URL</string>
     <string name="settings_api_key">API Key</string>
     <string name="settings_model">模型名称</string>
+    <string name="settings_fetch_models">自动识别可用模型</string>
+    <string name="fetching_models">正在识别模型…</string>
+    <string name="fetch_models_ok">已识别到 %1$d 个模型，可下拉选择或手动修改</string>
+    <string name="fetch_models_fail">模型识别失败：%1$s</string>
+    <string name="fetch_models_need_url">请先填写接口地址（Base URL）</string>
+    <string name="fetch_models_empty">服务端没有返回任何模型</string>
     <string name="settings_system_prompt">系统提示词（人设）</string>
     <string name="settings_temp">温度（随机性）</string>
     <string name="settings_voice">语音</string>

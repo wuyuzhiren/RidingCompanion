@@ -81,4 +81,57 @@ object ChatEngine {
                 conn.disconnect()
             }
         }
+
+    /**
+     * 自动识别服务商支持的模型列表（OpenAI 兼容 /models 接口）。
+     * 自动尝试常见路径：{base}/models、{base}/v1/models 等，返回模型 ID 列表。
+     */
+    suspend fun fetchModels(): List<String> = withContext(Dispatchers.IO) {
+        val base = AppConfig.llmBaseUrl.trim().trimEnd('/')
+        require(base.isNotEmpty()) { "未配置大模型接口地址" }
+        val candidates = mutableListOf("$base/models")
+        if (base.endsWith("/v1")) {
+            candidates.add(base.removeSuffix("/v1") + "/models")
+        } else {
+            candidates.add("$base/v1/models")
+        }
+        var lastErr: Exception? = null
+        for (u in candidates.distinct()) {
+            val conn = try {
+                (URL(u).openConnection() as HttpURLConnection).apply {
+                    requestMethod = "GET"
+                    connectTimeout = 15000
+                    readTimeout = 20000
+                    val key = AppConfig.llmApiKey.trim()
+                    if (key.isNotEmpty()) setRequestProperty("Authorization", "Bearer $key")
+                    setRequestProperty("Accept", "application/json")
+                }
+            } catch (e: Exception) {
+                lastErr = e
+                continue
+            }
+            try {
+                val code = conn.responseCode
+                if (code !in 200..299) {
+                    val err = conn.errorStream?.bufferedReader()?.use { it.readText() } ?: "HTTP $code"
+                    lastErr = RuntimeException("接口返回 $code：${err.take(200)}")
+                    continue
+                }
+                val text = conn.inputStream.bufferedReader().use { it.readText() }
+                val jo = JSONObject(text)
+                val data = jo.optJSONArray("data") ?: continue
+                val ids = mutableListOf<String>()
+                for (i in 0 until data.length()) {
+                    val id = data.optJSONObject(i)?.optString("id")
+                    if (!id.isNullOrBlank()) ids.add(id)
+                }
+                if (ids.isNotEmpty()) return@withContext ids
+            } catch (e: Exception) {
+                lastErr = e
+            } finally {
+                conn.disconnect()
+            }
+        }
+        throw RuntimeException("无法识别模型列表：${lastErr?.message ?: "未知错误"}")
+    }
 }

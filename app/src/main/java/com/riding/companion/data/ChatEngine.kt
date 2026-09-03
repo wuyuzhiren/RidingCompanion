@@ -114,6 +114,7 @@ object ChatEngine {
 
         val attempts = mutableListOf<String>()
         var lastErr: Exception? = null
+        var fatal: RuntimeException? = null
         for (u in candidates) {
             if (attempts.contains(u)) continue
             attempts.add(u)
@@ -132,6 +133,11 @@ object ChatEngine {
             }
             try {
                 val code = conn.responseCode
+                if (code == 401 || code == 403) {
+                    // 路径正确但鉴权失败：Key 缺失/无效，立即提示，不再试其它路径
+                    fatal = RuntimeException("接口地址正确，但 API Key 缺失或无效（HTTP $code）。请检查设置里的 Key 是否填写完整（通常以 sk- 开头）。")
+                    break
+                }
                 if (code !in 200..299) {
                     val err = conn.errorStream?.bufferedReader()?.use { it.readText() } ?: "HTTP $code"
                     lastErr = RuntimeException("$u → $code：${err.take(120)}")
@@ -161,6 +167,7 @@ object ChatEngine {
                 conn.disconnect()
             }
         }
+        if (fatal != null) throw fatal
         val diag = attempts.joinToString("；")
         throw RuntimeException("已尝试 $diag 均失败（最后错误：${lastErr?.message ?: "未知"}）。若该服务不提供模型列表，请手动输入模型名。")
     }

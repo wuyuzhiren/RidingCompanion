@@ -60,10 +60,22 @@ class SettingsFragment : Fragment() {
         binding.swLocalCmd.isChecked = AppConfig.localCommandMatching
         binding.swBeep.isChecked = AppConfig.cyclingBeep
         when (AppConfig.currentCharacter) {
+            0 -> binding.rgCharacter.check(R.id.rbCharLive)
             2 -> binding.rgCharacter.check(R.id.rbChar2)
             3 -> binding.rgCharacter.check(R.id.rbChar3)
             else -> binding.rgCharacter.check(R.id.rbChar1)
         }
+        binding.rgCharacter.setOnCheckedChangeListener { _, _ -> updateCharDesc() }
+        updateCharDesc()
+    }
+
+    private fun updateCharDesc() {
+        _binding?.tvCharDesc?.text = getString(
+            when (binding.rgCharacter.checkedRadioButtonId) {
+                R.id.rbCharLive -> R.string.char_live_desc
+                else -> R.string.character_desc_2d
+            }
+        )
     }
 
     private fun saveConfig() {
@@ -79,6 +91,7 @@ class SettingsFragment : Fragment() {
         AppConfig.localCommandMatching = binding.swLocalCmd.isChecked
         AppConfig.cyclingBeep = binding.swBeep.isChecked
         AppConfig.currentCharacter = when (binding.rgCharacter.checkedRadioButtonId) {
+            R.id.rbCharLive -> 0
             R.id.rbChar2 -> 2
             R.id.rbChar3 -> 3
             else -> 1

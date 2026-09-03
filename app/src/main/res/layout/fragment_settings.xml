@@ -214,33 +214,46 @@
             android:id="@+id/rgCharacter"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
+            android:orientation="vertical"
             android:paddingTop="8dp">
 
             <RadioButton
-                android:id="@+id/rbChar1"
-                android:layout_width="0dp"
+                android:id="@+id/rbCharLive"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
+                android:text="@string/char_live_name"
+                android:textSize="13sp" />
+
+            <RadioButton
+                android:id="@+id/rbChar1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
                 android:text="@string/char1_name"
-                android:textSize="12sp" />
+                android:textSize="13sp" />
 
             <RadioButton
                 android:id="@+id/rbChar2"
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:text="@string/char2_name"
-                android:textSize="12sp" />
+                android:textSize="13sp" />
 
             <RadioButton
                 android:id="@+id/rbChar3"
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:text="@string/char3_name"
-                android:textSize="12sp" />
+                android:textSize="13sp" />
         </RadioGroup>
+
+        <TextView
+            android:id="@+id/tvCharDesc"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/char_live_desc"
+            android:textColor="@color/text_secondary"
+            android:textSize="12sp"
+            android:paddingTop="6dp" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnSave"

@@ -54,7 +54,8 @@ object AppConfig {
         get() = sp.getInt("duck_level", 10)
         set(v) { sp.edit().putInt("duck_level", v).apply() }
 
+    /** 虚拟形象：0=Live2D小智娘, 1/2/3=2D少女/青年/御姐 */
     var currentCharacter: Int
-        get() = sp.getInt("current_character", 1)
-        set(v) { sp.edit().putInt("current_character", v.coerceIn(1, 3)).apply() }
+        get() = sp.getInt("current_character", 0)
+        set(v) { sp.edit().putInt("current_character", v.coerceIn(0, 3)).apply() }
 }

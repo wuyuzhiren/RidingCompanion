@@ -50,6 +50,9 @@
     <string name="char1_name">小樱 · 14岁JK少女</string>
     <string name="char2_name">小晴 · 20岁元气青年</string>
     <string name="char3_name">林姐 · 35岁知性御姐</string>
+    <string name="char_live_name">小智娘 · Live2D</string>
+    <string name="char_live_desc">会眨眼、呼吸、对口型的 Live2D 形象</string>
+    <string name="character_desc_2d">静态二次元形象：说话对口型、点她有互动反应</string>
     <string name="settings_save">保存设置</string>
     <string name="settings_saved">设置已保存</string>
     <string name="update_title">检查更新</string>

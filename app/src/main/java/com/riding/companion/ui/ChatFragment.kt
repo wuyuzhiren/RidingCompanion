@@ -2,6 +2,7 @@ package com.riding.companion.ui
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.graphics.Color
 import android.os.Bundle
 import android.view.GestureDetector
 import android.view.LayoutInflater
@@ -10,11 +11,16 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.animation.DecelerateInterpolator
+import android.webkit.WebResourceRequest
+import android.webkit.WebResourceResponse
+import android.webkit.WebView
+import android.webkit.WebViewClient
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.webkit.WebViewAssetLoader
 import com.riding.companion.R
 import com.riding.companion.audio.VoiceController
 import com.riding.companion.cycling.BeepHelper
@@ -42,6 +48,10 @@ class ChatFragment : Fragment() {
     private var mouthValue = 0f
     private var isSpeaking = false
     private var blinkJob: Job? = null
+
+    // Live2D 形象
+    private var live2dActive = false
+    private var live2dWebView: WebView? = null
 
     // 当前角色四帧资源：闭嘴(待机)/张嘴(说话)/眨眼/害羞反应
     private var curClosedRes = R.drawable.avatar1_closed
@@ -74,6 +84,7 @@ class ChatFragment : Fragment() {
         }
         startBreathing()
         applyCharacter()
+        initLive2d()
         setupTouchInteraction()
         binding.cyclingSwitch.isChecked = AppConfig.cyclingMode
         binding.cyclingSwitch.setOnCheckedChangeListener { _, checked ->
@@ -123,18 +134,58 @@ class ChatFragment : Fragment() {
 
     private fun applyCharacter() {
         val c = AppConfig.currentCharacter
+        live2dActive = (c == 0)
+        val b = _binding ?: return
+        if (live2dActive) {
+            b.live2dView.visibility = View.VISIBLE
+            b.avatarClosed.visibility = View.INVISIBLE
+            b.avatarOpen.visibility = View.INVISIBLE
+            b.avatarName.setText(R.string.char_live_name)
+            return
+        }
+        b.live2dView.visibility = View.GONE
+        b.avatarClosed.visibility = View.VISIBLE
+        b.avatarOpen.visibility = View.VISIBLE
         curClosedRes = when (c) { 2 -> R.drawable.avatar2_closed; 3 -> R.drawable.avatar3_closed; else -> R.drawable.avatar1_closed }
         curOpenRes = when (c) { 2 -> R.drawable.avatar2_open; 3 -> R.drawable.avatar3_open; else -> R.drawable.avatar1_open }
         curBlinkRes = when (c) { 2 -> R.drawable.avatar2_blink; 3 -> R.drawable.avatar3_blink; else -> R.drawable.avatar1_blink }
         curReactRes = when (c) { 2 -> R.drawable.avatar2_react; 3 -> R.drawable.avatar3_react; else -> R.drawable.avatar1_react }
-        binding.avatarClosed.setImageResource(curClosedRes)
-        binding.avatarOpen.setImageResource(curOpenRes)
-        binding.avatarClosed.alpha = 1f
-        binding.avatarOpen.alpha = 0f
+        b.avatarClosed.setImageResource(curClosedRes)
+        b.avatarOpen.setImageResource(curOpenRes)
+        b.avatarClosed.alpha = 1f
+        b.avatarOpen.alpha = 0f
         mouthValue = 0f
         val name = when (c) { 2 -> R.string.char2_name; 3 -> R.string.char3_name; else -> R.string.char1_name }
-        binding.avatarName.setText(name)
+        b.avatarName.setText(name)
         startBlinkLoop()
+    }
+
+    /** 初始化 Live2D WebView（WebViewAssetLoader 提供 https 访问 assets，保证 fetch 正常） */
+    private fun initLive2d() {
+        val wv = binding.live2dView
+        live2dWebView = wv
+        wv.settings.javaScriptEnabled = true
+        wv.settings.domStorageEnabled = true
+        wv.settings.allowFileAccess = false
+        wv.settings.mediaPlaybackRequiresUserGesture = false
+        wv.setBackgroundColor(Color.TRANSPARENT)
+        wv.setLayerType(View.LAYER_TYPE_HARDWARE, null)
+        val loader = WebViewAssetLoader.Builder()
+            .addPathHandler("/assets/", WebViewAssetLoader.AssetsPathHandler(requireContext()))
+            .build()
+        wv.webViewClient = object : WebViewClient() {
+            override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? =
+                loader.shouldInterceptRequest(request.url)
+        }
+        wv.loadUrl("https://appassets.androidplatform.net/assets/live2d/index.html")
+    }
+
+    private fun driveLive2dMouth(v: Float) {
+        live2dWebView?.evaluateJavascript("window.Live2D_setMouth($v)", null)
+    }
+
+    private fun driveLive2dSpeaking(b: Boolean) {
+        live2dWebView?.evaluateJavascript("window.Live2D_setSpeaking($b)", null)
     }
 
     private fun startBreathing() {
@@ -174,7 +225,10 @@ class ChatFragment : Fragment() {
                 return true
             }
         })
-        binding.avatarContainer.setOnTouchListener { _, event -> gd.onTouchEvent(event) }
+        binding.avatarContainer.setOnTouchListener { _, event ->
+            // Live2D 模式由 WebView 内部 hit 检测处理点击互动
+            if (live2dActive) false else gd.onTouchEvent(event)
+        }
     }
 
     private fun handleTouch(e: MotionEvent) {
@@ -229,8 +283,13 @@ class ChatFragment : Fragment() {
                     val t = anim.animatedValue as Float
                     val v = 0.5f + 0.42f * sin(t * 0.9f).toFloat() + 0.28f * sin(t * 2.1f + 1.5f).toFloat()
                     mouthValue = v.coerceIn(0f, 1f)
-                    b.avatarClosed.alpha = 1f - mouthValue
-                    b.avatarOpen.alpha = mouthValue
+                    if (live2dActive) {
+                        driveLive2dMouth(mouthValue)
+                        driveLive2dSpeaking(true)
+                    } else {
+                        b.avatarClosed.alpha = 1f - mouthValue
+                        b.avatarOpen.alpha = mouthValue
+                    }
                     // 说话时轻微点头
                     b.avatarContainer.rotation = (sin(t * 0.7f) * 3f).toFloat()
                 }
@@ -240,19 +299,24 @@ class ChatFragment : Fragment() {
             glowAnim?.cancel(); glowAnim = null
             b.avatarGlow.animate().alpha(0f).setDuration(300).start()
             mouthAnim?.cancel(); mouthAnim = null
-            val sv = mouthValue
-            android.animation.ValueAnimator.ofFloat(sv, 0f).apply {
-                duration = 250
-                addUpdateListener { anim ->
-                    mouthValue = anim.animatedValue as Float
-                    b.avatarClosed.alpha = 1f - mouthValue
-                    b.avatarOpen.alpha = mouthValue
+            if (live2dActive) {
+                driveLive2dMouth(0f)
+                driveLive2dSpeaking(false)
+            } else {
+                val sv = mouthValue
+                android.animation.ValueAnimator.ofFloat(sv, 0f).apply {
+                    duration = 250
+                    addUpdateListener { anim ->
+                        mouthValue = anim.animatedValue as Float
+                        b.avatarClosed.alpha = 1f - mouthValue
+                        b.avatarOpen.alpha = mouthValue
+                    }
+                    start()
                 }
-                start()
+                // 说完回到待机闭嘴帧
+                b.avatarClosed.postDelayed({ _binding?.avatarClosed?.setImageResource(curClosedRes) }, 260)
             }
             b.avatarContainer.animate().rotation(0f).setDuration(250).start()
-            // 说完回到待机闭嘴帧
-            b.avatarClosed.postDelayed({ _binding?.avatarClosed?.setImageResource(curClosedRes) }, 260)
         }
     }
 
@@ -352,7 +416,14 @@ class ChatFragment : Fragment() {
         blinkJob?.cancel(); blinkJob = null
         breathingAnim?.cancel(); glowAnim?.cancel(); mouthAnim?.cancel()
         breathingAnim = null; glowAnim = null; mouthAnim = null
+        _binding?.live2dView?.removeAllViews()
         super.onDestroyView()
         _binding = null
+    }
+
+    override fun onDestroy() {
+        live2dWebView?.destroy()
+        live2dWebView = null
+        super.onDestroy()
     }
 }
